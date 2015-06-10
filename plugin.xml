@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin
+    xmlns="http://apache.org/cordova/ns/plugins/1.0"
+    id="cordova-kuya-download"
+    version="0.0.1">
+
+    <name>kuya-download</name>
+	<description></description>
+    <engines>
+        <engine name="cordova" version=">=2.4.0" />
+    </engines>
+
+	<license>MIT</license>
+    <keywords>cordova,download</keywords>
+
+    <platform name="ios">
+        <!--
+        <js-module src="www/store-ios.js" name="InAppPurchase">
+            <clobbers target="store" />
+        </js-module>
+        -->
+
+        <!-- Cordova 2.2 -->
+        <plugins-plist key="kuyadownload" string="kuyadownload" />
+
+        <!-- Cordova 2.5+ -->
+        <config-file target="config.xml" parent="/*">
+            <feature name="kuyadownload">
+                <param name="ios-package" value="KuyaDownload"/>
+                <param name="onload" value="true" />
+            </feature>
+        </config-file>
+
+        <!--
+        <header-file src="src/ios/Base64.h" />
+        <source-file src="src/ios/Base64.m" />
+        <header-file src="src/ios/IOSStoreKit.h" />
+        <source-file src="src/ios/IOSStoreKit.m" />
+        <framework src="StoreKit.framework" />
+        -->
+
+        <header-file src="src/ios/ASIAuthenticationDialog.h"/>
+        <source-file src="src/ios/ASIAuthenticationDialog.m"/>
+        <header-file src="src/ios/ASICacheDelegate.h"/>
+        <header-file src="src/ios/ASIDataCompressor.h"/>
+        <source-file src="src/ios/ASIDataCompressor.m"/>
+        <header-file src="src/ios/ASIDataDecompressor.h"/>
+        <source-file src="src/ios/ASIDataDecompressor.m"/>
+        <header-file src="src/ios/ASIDownloadCache.h"/>
+        <source-file src="src/ios/ASIDownloadCache.m"/>
+        <header-file src="src/ios/ASIFormDataRequest.h"/>
+        <source-file src="src/ios/ASIFormDataRequest.m"/>
+        <header-file src="src/ios/ASIHTTPRequest.h"/>
+        <source-file src="src/ios/ASIHTTPRequest.m"/>
+        <header-file src="src/ios/ASIHTTPRequestConfig.h"/>
+        <header-file src="src/ios/ASIHTTPRequestDelegate.h"/>
+        <header-file src="src/ios/ASIInputStream.h"/>
+        <source-file src="src/ios/ASIInputStream.m"/>
+        <header-file src="src/ios/ASINetworkQueue.h"/>
+        <source-file src="src/ios/ASINetworkQueue.m"/>
+        <header-file src="src/ios/ASIProgressDelegate.h"/>
+        <header-file src="src/ios/KuyaDownload.h"/>
+        <source-file src="src/ios/KuyaDownload.m"/>
+        <header-file src="src/ios/Reachability.h"/>
+        <source-file src="src/ios/Reachability.m"/>
+
+        <framework src="CFNetwork.framework" />
+        <framework src="libz.dylib" />
+
+    </platform>
+</plugin>
