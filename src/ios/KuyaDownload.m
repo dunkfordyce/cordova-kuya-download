@@ -7,25 +7,42 @@
 
 @synthesize plugin = _plugin;
 @synthesize command = _command;
+@synthesize download_id = _download_id;
 
 - (void)requestFinished:(ASIHTTPRequest *)request
 {
-    //[self.plugin commandReply:self.command withBool:true];
-    [self.plugin emitEvent:@"request finished" object: [[NSDictionary alloc] initWithObjectsAndKeys:
+    [self.plugin emitEvent:@"finished" object: [[NSDictionary alloc] initWithObjectsAndKeys:
+                                                        [NSNumber numberWithInt:self.download_id], @"id",
                                                         [request responseHeaders], @"headers",
                                                         [request.url absoluteString], @"url",
                                                         nil]
     ];
     
     [self.plugin.delegates removeObject:self];
+    request.delegate = nil;
 }
 
 - (void)requestFailed:(ASIHTTPRequest *)request
 {
     NSError* err = [request error];
-    [self.plugin emitEvent:@"request failed" object:[err localizedDescription]];
-    //[self.plugin commandReply:command withError: [err localizedDescription]];
+    [self.plugin emitEvent:@"failed" object:  [[NSDictionary alloc] initWithObjectsAndKeys:
+                                                        [NSNumber numberWithInt:self.download_id], @"id",
+                                                        [err localizedDescription], "@message",
+                                                        nil]
+    ];
     [self.plugin.delegates removeObject:self];
+    request.delegate = nil;
+}
+
+- (void)request:(ASIHTTPRequest *)request didReceiveBytes:(long long)bytes
+{
+    NSLog(@"progress %@ %llu %llull", request.url.absoluteString, request.contentLength, request.totalBytesRead);
+    [self.plugin emitEvent:@"progress" object:[[NSDictionary alloc] initWithObjectsAndKeys:
+                                               [NSNumber numberWithInt:self.download_id], @"id",
+                                               [NSNumber numberWithLongLong: request.contentLength], @"total",
+                                               [NSNumber numberWithLongLong: request.totalBytesRead], @"downloaded",
+                                               nil]
+     ];
 }
 
 @end
@@ -33,19 +50,21 @@
 @implementation KuyaDownload
 
 @synthesize delegates = _delegates;
+@synthesize download_id = _download_id;
 
 static KuyaDownload * _scManager;
+
 
 -(void) pluginInitialize
 {
     NSLog(@"pluginInitialize()");
-    //[self emitEvent:@"ready" object:nil];
+    self.delegates = [[NSMutableSet alloc]init];
+    self.download_id = 0;
 }
 
 -(void) init:(CDVInvokedUrlCommand*) command
 {
     NSLog(@"init()");
-    self.delegates = [[NSMutableSet alloc]init];
 }
 
 
@@ -60,16 +79,18 @@ static KuyaDownload * _scManager;
     
     delegate.plugin = self;
     delegate.command = command;
+    delegate.download_id = self.download_id++;
     
     [self.delegates addObject: delegate];
     
     ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:url]];
     [request setRequestHeaders:headers];
+    [request setDownloadProgressDelegate:delegate];
     [request setDownloadDestinationPath:dest];
     [request setDelegate:delegate];
     [request startAsynchronous];
     
-    [self commandReply:command withBool:true];
+    [self commandReply:command withInteger:delegate.download_id];
 }
 
 
@@ -119,7 +140,7 @@ static KuyaDownload * _scManager;
 -(void) commandReply:(CDVInvokedUrlCommand*) command withDictionary:(NSDictionary*) obj
 {
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
-                                        messageAsDictionary: obj
+                                                        messageAsDictionary: obj
                                      ];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
@@ -127,7 +148,15 @@ static KuyaDownload * _scManager;
 -(void) commandReply:(CDVInvokedUrlCommand*) command withBool:(Boolean) v
 {
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
-                                                  messageAsBool:v
+                                                        messageAsBool:v
+                                     ];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
+-(void) commandReply:(CDVInvokedUrlCommand*) command withInteger:(NSInteger) v
+{
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
+                                                         messageAsInt:v
                                      ];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
@@ -138,7 +167,7 @@ static KuyaDownload * _scManager;
                          msg, @"message",
                          nil];
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
-                                                  messageAsDictionary: err
+                                                        messageAsDictionary: err
                                      ];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
@@ -146,7 +175,7 @@ static KuyaDownload * _scManager;
 
 - (void)dealloc
 {
-
+    self.delegates = nil;
 }
 
 @end

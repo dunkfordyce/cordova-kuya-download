@@ -2,12 +2,15 @@
 #import <Cordova/CDVPluginResult.h>
 #import <Foundation/Foundation.h>
 #import "ASIHTTPRequestDelegate.h"
+#import "ASIProgressDelegate.h"
 
 @interface KuyaDownload : CDVPlugin
 {
     NSMutableSet* delegates;
+    int download_id;
 }
 
+@property int download_id;
 @property (retain) NSMutableSet* delegates;
 
 -(void) emitEvent:(NSString*)evname object:(NSObject*) result;
@@ -24,16 +27,21 @@
 -(void) pluginInitialize;
 @end
 
-@interface KuyaDownloadRequestDelegate : NSObject <ASIHTTPRequestDelegate>
+@interface KuyaDownloadRequestDelegate : NSObject <ASIHTTPRequestDelegate, ASIProgressDelegate>
 {
+    int download_id;
     KuyaDownload* plugin;
     CDVInvokedUrlCommand* command;
 }
+
+@property int download_id;
 @property (retain) KuyaDownload* plugin;
 @property (retain) CDVInvokedUrlCommand* command;
 
 - (void)requestFinished:(ASIHTTPRequest *)request;
 - (void)requestFailed:(ASIHTTPRequest *)request;
+
+- (void)request:(ASIHTTPRequest *)request didReceiveBytes:(long long)bytes;
 
 @end
  

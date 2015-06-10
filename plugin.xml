@@ -40,29 +40,29 @@
         -->
 
         <header-file src="src/ios/ASIAuthenticationDialog.h"/>
-        <source-file src="src/ios/ASIAuthenticationDialog.m"/>
+        <source-file src="src/ios/ASIAuthenticationDialog.m" compiler-flags="-fno-objc-arc"/>
         <header-file src="src/ios/ASICacheDelegate.h"/>
         <header-file src="src/ios/ASIDataCompressor.h"/>
-        <source-file src="src/ios/ASIDataCompressor.m"/>
+        <source-file src="src/ios/ASIDataCompressor.m" compiler-flags="-fno-objc-arc"/>
         <header-file src="src/ios/ASIDataDecompressor.h"/>
-        <source-file src="src/ios/ASIDataDecompressor.m"/>
+        <source-file src="src/ios/ASIDataDecompressor.m" compiler-flags="-fno-objc-arc"/>
         <header-file src="src/ios/ASIDownloadCache.h"/>
-        <source-file src="src/ios/ASIDownloadCache.m"/>
+        <source-file src="src/ios/ASIDownloadCache.m" compiler-flags="-fno-objc-arc"/>
         <header-file src="src/ios/ASIFormDataRequest.h"/>
-        <source-file src="src/ios/ASIFormDataRequest.m"/>
+        <source-file src="src/ios/ASIFormDataRequest.m" compiler-flags="-fno-objc-arc"/>
         <header-file src="src/ios/ASIHTTPRequest.h"/>
-        <source-file src="src/ios/ASIHTTPRequest.m"/>
+        <source-file src="src/ios/ASIHTTPRequest.m" compiler-flags="-fno-objc-arc"/>
         <header-file src="src/ios/ASIHTTPRequestConfig.h"/>
         <header-file src="src/ios/ASIHTTPRequestDelegate.h"/>
         <header-file src="src/ios/ASIInputStream.h"/>
-        <source-file src="src/ios/ASIInputStream.m"/>
+        <source-file src="src/ios/ASIInputStream.m" compiler-flags="-fno-objc-arc"/>
         <header-file src="src/ios/ASINetworkQueue.h"/>
-        <source-file src="src/ios/ASINetworkQueue.m"/>
+        <source-file src="src/ios/ASINetworkQueue.m" compiler-flags="-fno-objc-arc"/>
         <header-file src="src/ios/ASIProgressDelegate.h"/>
         <header-file src="src/ios/KuyaDownload.h"/>
         <source-file src="src/ios/KuyaDownload.m"/>
         <header-file src="src/ios/Reachability.h"/>
-        <source-file src="src/ios/Reachability.m"/>
+        <source-file src="src/ios/Reachability.m" compiler-flags="-fno-objc-arc"/>
 
         <framework src="CFNetwork.framework" />
         <framework src="libz.dylib" />
