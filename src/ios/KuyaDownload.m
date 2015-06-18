@@ -15,6 +15,7 @@
                                                         [NSNumber numberWithInt:self.download_id], @"id",
                                                         [request responseHeaders], @"headers",
                                                         [request.url absoluteString], @"url",
+                                                        [NSNumber numberWithInt:[request responseStatusCode]], @"status",
                                                         nil]
     ];
     
@@ -75,7 +76,7 @@ static KuyaDownload * _scManager;
     NSMutableDictionary* headers = [command.arguments objectAtIndex:2];
     KuyaDownloadRequestDelegate *delegate = [[KuyaDownloadRequestDelegate alloc] init];
     
-    NSLog(@"downloading %@ %@", url, dest);
+    NSLog(@"downloading %@ %@ %@", url, dest, headers);
     
     delegate.plugin = self;
     delegate.command = command;
@@ -85,6 +86,7 @@ static KuyaDownload * _scManager;
     
     ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:url]];
     [request setRequestHeaders:headers];
+    request.shouldRedirect = false;
     [request setDownloadProgressDelegate:delegate];
     [request setDownloadDestinationPath:dest];
     [request setDelegate:delegate];
