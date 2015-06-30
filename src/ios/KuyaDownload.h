@@ -6,12 +6,12 @@
 
 @interface KuyaDownload : CDVPlugin
 {
-    NSMutableSet* delegates;
+    NSMutableDictionary* delegates;
     int download_id;
 }
 
 @property int download_id;
-@property (retain) NSMutableSet* delegates;
+@property (retain) NSMutableDictionary* delegates;
 
 -(void) emitEvent:(NSString*)evname object:(NSObject*) result;
 -(void) commandReply:(CDVInvokedUrlCommand*) command withDictionary:(NSDictionary*) obj;
@@ -21,7 +21,7 @@
 -(void) init:(CDVInvokedUrlCommand*) command;
 
 -(void) download:(CDVInvokedUrlCommand*)command;
-
+-(void) cancel:(CDVInvokedUrlCommand*)command;
 
 -(void) dealloc;
 -(void) pluginInitialize;
@@ -32,11 +32,13 @@
     int download_id;
     KuyaDownload* plugin;
     CDVInvokedUrlCommand* command;
+    ASIHTTPRequest* request;
 }
 
 @property int download_id;
 @property (retain) KuyaDownload* plugin;
 @property (retain) CDVInvokedUrlCommand* command;
+@property (weak) ASIHTTPRequest* request;
 
 - (void)requestFinished:(ASIHTTPRequest *)request;
 - (void)requestFailed:(ASIHTTPRequest *)request;

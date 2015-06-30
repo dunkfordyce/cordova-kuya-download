@@ -8,40 +8,41 @@
 @synthesize plugin = _plugin;
 @synthesize command = _command;
 @synthesize download_id = _download_id;
+@synthesize request = _request;
 
-- (void)requestFinished:(ASIHTTPRequest *)request
+- (void)requestFinished:(ASIHTTPRequest *)r
 {
     [self.plugin emitEvent:@"finished" object: [[NSDictionary alloc] initWithObjectsAndKeys:
                                                         [NSNumber numberWithInt:self.download_id], @"id",
-                                                        [request responseHeaders], @"headers",
-                                                        [request.url absoluteString], @"url",
-                                                        [NSNumber numberWithInt:[request responseStatusCode]], @"status",
+                                                        [r responseHeaders], @"headers",
+                                                        [r.url absoluteString], @"url",
+                                                        [NSNumber numberWithInt:[r responseStatusCode]], @"status",
                                                         nil]
     ];
     
-    [self.plugin.delegates removeObject:self];
-    request.delegate = nil;
+    [self.plugin.delegates removeObjectForKey: [NSNumber numberWithInt: self.download_id]];
+    r.delegate = nil;
 }
 
-- (void)requestFailed:(ASIHTTPRequest *)request
+- (void)requestFailed:(ASIHTTPRequest *)r
 {
-    NSError* err = [request error];
-    [self.plugin emitEvent:@"failed" object:  [[NSDictionary alloc] initWithObjectsAndKeys:
-                                                        [NSNumber numberWithInt:self.download_id], @"id",
-                                                        [err localizedDescription], "@message",
-                                                        nil]
-    ];
-    [self.plugin.delegates removeObject:self];
-    request.delegate = nil;
+    NSError* err = [r error];
+    
+    [self.plugin emitEvent:@"failed" object: @{
+        @"id": [NSNumber numberWithInt:self.download_id],
+        @"message": [r isCancelled] ? @"cancelled" : [err localizedDescription]
+    }];
+    [self.plugin.delegates removeObjectForKey: [NSNumber numberWithInt: self.download_id]];
+    r.delegate = nil;
 }
 
-- (void)request:(ASIHTTPRequest *)request didReceiveBytes:(long long)bytes
+- (void)request:(ASIHTTPRequest *)r didReceiveBytes:(long long)bytes
 {
-    NSLog(@"progress %@ %llu %llull", request.url.absoluteString, request.contentLength, request.totalBytesRead);
+    NSLog(@"progress %@ %llu %llull", r.url.absoluteString, r.contentLength, r.totalBytesRead);
     [self.plugin emitEvent:@"progress" object:[[NSDictionary alloc] initWithObjectsAndKeys:
                                                [NSNumber numberWithInt:self.download_id], @"id",
-                                               [NSNumber numberWithLongLong: request.contentLength], @"total",
-                                               [NSNumber numberWithLongLong: request.totalBytesRead], @"downloaded",
+                                               [NSNumber numberWithLongLong: r.contentLength], @"total",
+                                               [NSNumber numberWithLongLong: r.totalBytesRead], @"downloaded",
                                                nil]
      ];
 }
@@ -59,7 +60,7 @@ static KuyaDownload * _scManager;
 -(void) pluginInitialize
 {
     NSLog(@"pluginInitialize()");
-    self.delegates = [[NSMutableSet alloc]init];
+    self.delegates = [[NSMutableDictionary alloc]init];
     self.download_id = 0;
 }
 
@@ -82,7 +83,9 @@ static KuyaDownload * _scManager;
     delegate.command = command;
     delegate.download_id = self.download_id++;
     
-    [self.delegates addObject: delegate];
+    [self.delegates setObject:delegate
+                       forKey: [NSNumber numberWithInt:delegate.download_id]
+    ];
     
     ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:url]];
     [request setRequestHeaders:headers];
@@ -92,7 +95,22 @@ static KuyaDownload * _scManager;
     [request setDelegate:delegate];
     [request startAsynchronous];
     
+    delegate.request = request;
+    
     [self commandReply:command withInteger:delegate.download_id];
+}
+
+-(void) cancel:(CDVInvokedUrlCommand*)command
+{
+    NSNumber* id = [command.arguments objectAtIndex:0];
+    KuyaDownloadRequestDelegate* delegate = [self.delegates objectForKey:id];
+    
+    if( delegate ) {
+        [delegate.request cancel];
+        [self commandReply:command withBool:true];
+    } else {
+        [self commandReply:command withError:@"no such download"];
+    }
 }
 
 
