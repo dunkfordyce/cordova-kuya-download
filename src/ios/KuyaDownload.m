@@ -92,7 +92,10 @@ static KuyaDownload * _scManager;
     request.shouldRedirect = false;
     [request setDownloadProgressDelegate:delegate];
     [request setDownloadDestinationPath:dest];
+    [request setAllowResumeForFileDownloads:YES];
+    [request setTemporaryFileDownloadPath:[NSString stringWithFormat:@"%@.tmp", dest]];
     [request setDelegate:delegate];
+    [ASIHTTPRequest setShouldUpdateNetworkActivityIndicator:NO];
     [request startAsynchronous];
     
     delegate.request = request;

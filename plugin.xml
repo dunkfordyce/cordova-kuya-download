@@ -13,6 +13,16 @@
 	<license>MIT</license>
     <keywords>cordova,download</keywords>
 
+    <platform name="android">
+        <config-file target="config.xml" parent="/*">
+            <feature name="kuyadownload">
+                <param name="android-package" value="com.kuya.cordova.plugin.KuyaDownload" />
+            </feature>
+        </config-file>
+        <source-file src="src/android/com/kuya/cordova/plugin/KuyaDownload.java" target-dir="src/com/kuya/cordova/plugin/" />
+    </platform>
+
+
     <platform name="ios">
         <!--
         <js-module src="www/store-ios.js" name="InAppPurchase">
