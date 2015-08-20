@@ -90,12 +90,17 @@ static KuyaDownload * _scManager;
     ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:url]];
     [request setRequestHeaders:headers];
     request.shouldRedirect = false;
+    
+    // iOS 4+ only
+    [request setShouldContinueWhenAppEntersBackground:YES];
+    
     [request setDownloadProgressDelegate:delegate];
     [request setDownloadDestinationPath:dest];
     [request setAllowResumeForFileDownloads:YES];
     [request setTemporaryFileDownloadPath:[NSString stringWithFormat:@"%@.tmp", dest]];
+    
     [request setDelegate:delegate];
-    [ASIHTTPRequest setShouldUpdateNetworkActivityIndicator:NO];
+    //[ASIHTTPRequest setShouldUpdateNetworkActivityIndicator:NO];
     [request startAsynchronous];
     
     delegate.request = request;
