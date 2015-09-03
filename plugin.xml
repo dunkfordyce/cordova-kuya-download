@@ -19,7 +19,11 @@
                 <param name="android-package" value="com.kuya.cordova.plugin.KuyaDownload" />
             </feature>
         </config-file>
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+            <service android:name="com.kuya.cordova.plugin.KuyaDownloadService" />
+        </config-file>
         <source-file src="src/android/com/kuya/cordova/plugin/KuyaDownload.java" target-dir="src/com/kuya/cordova/plugin/" />
+        <source-file src="src/android/com/kuya/cordova/plugin/KuyaDownloadService.java" target-dir="src/com/kuya/cordova/plugin/" />
     </platform>
 
 
