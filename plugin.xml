@@ -24,6 +24,8 @@
         </config-file>
         <source-file src="src/android/com/kuya/cordova/plugin/KuyaDownload.java" target-dir="src/com/kuya/cordova/plugin/" />
         <source-file src="src/android/com/kuya/cordova/plugin/KuyaDownloadService.java" target-dir="src/com/kuya/cordova/plugin/" />
+
+        <framework src="src/android/kuyadownload.gradle" custom="true" type="gradleReference"/>
     </platform>
 
 

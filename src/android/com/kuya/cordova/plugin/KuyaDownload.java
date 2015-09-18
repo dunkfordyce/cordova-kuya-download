@@ -4,6 +4,7 @@ import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CallbackContext;
 
 import org.apache.cordova.file.FileUtils;
+import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,6 +23,9 @@ import android.os.ParcelFileDescriptor;
 import android.os.ResultReceiver;
 import android.util.Log;
 
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.FileAsyncHttpResponseHandler;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -38,6 +42,8 @@ public class KuyaDownload extends CordovaPlugin {
     HashMap<Long, String> downloads = new HashMap<Long, String>();
     private long download_id = 0;
 
+    private static AsyncHttpClient client = new AsyncHttpClient();
+
     /**
      * @param context used to check the device version and DownloadManager information
      * @return true if the download manager is available
@@ -48,6 +54,7 @@ public class KuyaDownload extends CordovaPlugin {
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+
         try {
             if (action.equals("download")) {
                 //Uri uri = Uri.parse(args.getString(0));
@@ -67,7 +74,7 @@ public class KuyaDownload extends CordovaPlugin {
                     options = new JSONObject();
                 }
 
-                this.download2(uri, dest, headers, options, callbackContext);
+                this.download3(uri, dest, headers, options, callbackContext);
             } else if (action.equals("get_file_path")) {
                 this.get_file_path(callbackContext);
             } else {
@@ -144,6 +151,120 @@ public class KuyaDownload extends CordovaPlugin {
                 Log.e(TAG, "error sending json data "+e);
             }
         }
+    }
+
+    private void download3(String url, String local_dest, JSONObject headers, JSONObject options, CallbackContext context) {
+        Iterator<?> keys = headers.keys();
+        while( keys.hasNext() ) {
+            String key = (String)keys.next();
+            try {
+                Log.i(TAG, "header setting " + key + " to " + headers.get(key));
+                client.addHeader(key, headers.getString(key));
+            } catch(org.json.JSONException e) {
+                Log.e(TAG, "header failed a request header");
+            }
+        }
+        File dest = new File(cordova.getActivity().getFilesDir(), local_dest);
+        final long my_download_id = download_id++;
+
+        client.get(url, new FileAsyncHttpResponseHandler(dest) {
+                @Override
+                public void onProgress(long bytesWritten, long totalSize) {
+                    super.onProgress(bytesWritten, totalSize);
+                    final String js;
+                    try {
+                        JSONObject ev = new JSONObject()
+                                .put("plugin", "kuyadownload")
+                                .put("type", "progress")
+                                .put("data", new JSONObject()
+                                                .put("id", my_download_id)
+                                                .put("downloaded", bytesWritten)
+                                                .put("total", totalSize)
+                                );
+                        js = "javascript:window.cordova_plugin._emit(" + ev.toString() + ");";
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        return;
+                    }
+
+                    cordova.getActivity().runOnUiThread(new Runnable() {
+                        public void run() {
+                            Log.i(TAG, "emitting " + js);
+                            webView.loadUrl(js);
+                        }
+                    });
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
+                    JSONObject js_event = new JSONObject();
+                    JSONObject js_headers = new JSONObject();
+                    try {
+                        for (int i = 0; i != headers.length; i++) {
+                            js_headers.put(headers[i].getName(), headers[i].getValue());
+                        }
+
+                        js_event.put("type", "failed")
+                                .put("plugin", "kuyadownload")
+                                .put("data", new JSONObject()
+                                                .put("id", my_download_id)
+                                                .put("message", throwable.getMessage())
+                                                .put("status", statusCode)
+                                );
+
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    final String js = "javascript:window.cordova_plugin._emit(" + js_event.toString() + ");";
+
+                    cordova.getActivity().runOnUiThread(new Runnable() {
+                        public void run() {
+
+                            Log.i(TAG, "emitting " + js);
+                            webView.loadUrl(js);
+                        }
+                    });
+                }
+
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, File file) {
+                    JSONObject js_event = new JSONObject();
+                    JSONObject js_headers = new JSONObject();
+                    try {
+                        for (int i = 0; i != headers.length; i++) {
+                            js_headers.put(headers[i].getName(), headers[i].getValue());
+                        }
+
+                        js_event.put("type", "finished")
+                                .put("plugin", "kuyadownload")
+                                .put("data", new JSONObject()
+                                                .put("id", my_download_id)
+                                                .put("headers", js_headers)
+                                                .put("status", statusCode)
+                                                .put("download_path", file.getPath())
+                                );
+
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    final String js = "javascript:window.cordova_plugin._emit(" + js_event.toString() + ");";
+
+                    cordova.getActivity().runOnUiThread(new Runnable() {
+                        public void run() {
+
+                            Log.i(TAG, "emitting " + js);
+                            webView.loadUrl(js);
+                        }
+                    });
+                }
+            });
+
+        context.success((int)my_download_id);
     }
 
     private void download2(String url, String local_dest, JSONObject headers, JSONObject options, CallbackContext context) {

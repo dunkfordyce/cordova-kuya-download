@@ -1,0 +1,8 @@
+repositories {
+  maven {
+    url 'https://oss.sonatype.org/content/repositories/snapshots/'
+  }
+}
+dependencies {
+  compile 'com.loopj.android:android-async-http:1.4.8'
+}
