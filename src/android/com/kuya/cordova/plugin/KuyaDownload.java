@@ -200,24 +200,26 @@ public class KuyaDownload extends CordovaPlugin {
                 public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
                     JSONObject js_event = new JSONObject();
                     JSONObject js_headers = new JSONObject();
-                    try {
-                        for (int i = 0; i != headers.length; i++) {
-                            js_headers.put(headers[i].getName(), headers[i].getValue());
+
+                    if( headers != null ) {
+                        try {
+                            for (int i = 0; i != headers.length; i++) {
+                                js_headers.put(headers[i].getName(), headers[i].getValue());
+                            }
+
+                            js_event.put("type", "failed")
+                                    .put("plugin", "kuyadownload")
+                                    .put("data", new JSONObject()
+                                                    .put("id", my_download_id)
+                                                    .put("message", throwable.getMessage())
+                                                    .put("status", statusCode)
+                                    );
+
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
-
-                        js_event.put("type", "failed")
-                                .put("plugin", "kuyadownload")
-                                .put("data", new JSONObject()
-                                                .put("id", my_download_id)
-                                                .put("message", throwable.getMessage())
-                                                .put("status", statusCode)
-                                );
-
-
-                    } catch (JSONException e) {
-                        e.printStackTrace();
                     }
-
                     final String js = "javascript:window.cordova_plugin._emit(" + js_event.toString() + ");";
 
                     cordova.getActivity().runOnUiThread(new Runnable() {
